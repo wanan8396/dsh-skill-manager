@@ -1,6 +1,6 @@
 {
   "meta": {
     "title": "Skill manager",
-    "description": "Adds a Skills row to the sidebar's global entry list. Selecting it opens a manager page in the main column that lists SKILL.md skills from the project and user roots. Install by choosing files through the system file picker, uploading a whole skill folder, browsing the Host filesystem in-app (/sdcard and elsewhere), or typing a path; user skills can be deleted with a two-step confirmation. Only ~/.dsh/skills is writable and project skills are read-only. New skills are picked up by the filesystem provider on the next session or tool step."
+    "description": "Adds a Skills row to the sidebar's global entry list. Installing is one step: Pick SKILL.md opens the system file chooser and installs immediately; Pick a whole skill folder uploads a bundle; Browse files installs whatever folder you tap in the host browser. Skills are grouped by root, user skills delete behind a confirmation, project skills are read-only."
   }
 }

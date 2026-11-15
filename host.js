@@ -6,7 +6,7 @@
  *   GET  /plugins/skill-manager/list           – every discovered skill plus its root
  *   POST /plugins/skill-manager/install        – write a pasted SKILL.md into the user root
  *   POST /plugins/skill-manager/install-upload – write files chosen in the browser
- *   POST /plugins/skill-manager/import         – copy a local skill directory/file into the user root
+ *   POST /plugins/skill-manager/install-from-path – copy a folder/.md the user just picked
  *   POST /plugins/skill-manager/delete         – remove one skill from the user root
  *
  * Discovery mirrors @deepseek-ai/dsh-skill-filesystem: `<root>/<name>/SKILL.md`
@@ -425,7 +425,12 @@ async function installUpload(input) {
   return { ok: true, name: skillName, description, mode, path: target, overwritten: occupied, files: files.length }
 }
 
-async function importSkill(input) {
+/**
+ * Copy a skill the user picked in the file browser: one directory holding
+ * SKILL.md, or one `.md` file. The path comes from a Host listing, never a
+ * free-text field, and it is validated like every other write target.
+ */
+async function installFromPath(input) {
   const source = path.resolve(String(input.path || ''))
   if (source === '') throw new HttpError(400, '缺少 path', 'E_INPUT')
   let info
@@ -436,37 +441,30 @@ async function importSkill(input) {
   }
   const root = uniqueRoot()
   await mkdir(root.path, { recursive: true })
-  let skillFile
+
   let mode
+  let skillFile
   if (info.isDirectory()) {
     skillFile = path.join(source, 'SKILL.md')
     mode = 'directory'
-    if (!existsSync(skillFile)) {
-      throw new HttpError(400, '目录里没有 SKILL.md，不是技能包', 'E_NOT_SKILL')
-    }
+    if (!existsSync(skillFile)) throw new HttpError(400, '该文件夹里没有 SKILL.md', 'E_NOT_SKILL')
   } else if (info.isFile() && source.endsWith('.md')) {
     skillFile = source
     mode = 'file'
   } else {
-    throw new HttpError(400, '只能导入技能目录或 .md 文件', 'E_INPUT')
+    throw new HttpError(400, '只能选择技能文件夹或 .md 文件', 'E_INPUT')
   }
-  const text = await readFile(skillFile, 'utf8')
-  const parsed = parseSkill(text)
-  const target = mode === 'file'
-    ? path.join(root.path, `${parsed.skillName}.md`)
-    : path.join(root.path, parsed.skillName)
+
+  const parsed = parseSkill(await readFile(skillFile, 'utf8'))
+  const target = mode === 'file' ? path.join(root.path, `${parsed.skillName}.md`) : path.join(root.path, parsed.skillName)
   const occupied = existsSync(target)
   if (occupied) {
-    if (input.overwrite !== true) {
-      throw new HttpError(409, `技能 ${parsed.skillName} 已存在（${target}）`, 'E_EXISTS')
-    }
+    if (input.overwrite !== true) throw new HttpError(409, `技能 ${parsed.skillName} 已存在（${target}）`, 'E_EXISTS')
     await rm(target, { recursive: true, force: true })
   }
-  if (mode === 'file') {
-    await cp(source, target, { force: true })
-  } else {
-    await cp(source, target, { recursive: true, force: true })
-  }
+  if (mode === 'file') await cp(source, target, { force: true })
+  else await cp(source, target, { recursive: true, force: true })
+
   return { ok: true, name: parsed.skillName, description: parsed.description, mode, path: target, overwritten: occupied }
 }
 
@@ -527,7 +525,7 @@ function methodNotAllowed(res, method, allowed) {
   sendJson(res, 405, { ok: false, error: `不支持 ${method}，允许：${allowed}`, code: 'E_METHOD' })
 }
 
-const POST_ROUTES = new Set(['/install', '/install-upload', '/import', '/delete'])
+const POST_ROUTES = new Set(['/install', '/install-upload', '/install-from-path', '/delete'])
 
 async function dispatch(req, res) {
   const url = new URL(req.url || '/', 'http://127.0.0.1')
@@ -559,8 +557,8 @@ async function dispatch(req, res) {
     sendJson(res, 200, await installUpload(body))
     return
   }
-  if (route === '/import') {
-    sendJson(res, 200, await importSkill(body))
+  if (route === '/install-from-path') {
+    sendJson(res, 200, await installFromPath(body))
     return
   }
   sendJson(res, 200, await deleteSkill(body))

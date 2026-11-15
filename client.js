@@ -17,7 +17,7 @@ window.__ModuleLoader__.load({
       'panel.refresh': '刷新',
       'list.loading': '正在读取技能…',
       'list.empty': '还没有发现本机技能',
-      'list.emptyHint': '用下面的“选择文件 / 选择文件夹”直接挑一个 SKILL.md，或者粘贴内容安装。',
+      'list.emptyHint': '点下面的“选 SKILL.md 安装”，选完就装好。',
       'list.count': '共 {count} 个技能',
       'root.project-dsh': '项目 .dsh',
       'root.project-agents': '项目 .agents',
@@ -33,7 +33,7 @@ window.__ModuleLoader__.load({
       'row.nodesc': '（frontmatter 没有 description）',
       'install.toggle': '安装技能',
       'install.title': '安装技能',
-      'install.hint': '选择文件会打开系统的文件选择器；粘贴内容时必须以 --- 开头，frontmatter 含 name（kebab-case）与 description。',
+      'install.hint': '选 SKILL.md 会直接打开文件选择器，选完自动安装。',
       'install.placeholder': '---\nname: my-skill\ndescription: 一句话说明什么时候用这个技能\n---\n\n# 正文\n按步骤写的指令…',
       'install.mode': '写入形式',
       'install.modeDirectory': '目录 name/SKILL.md',
@@ -41,22 +41,21 @@ window.__ModuleLoader__.load({
       'install.overwrite': '覆盖同名技能',
       'install.run': '安装',
       'install.running': '安装中…',
-      'pick.files': '选择文件…',
-      'pick.folder': '选择技能文件夹…',
-      'pick.server': '浏览服务器目录…',
+      'pick.files': '选 SKILL.md 安装',
+      'pick.folder': '选整个技能文件夹',
+      'pick.server': '浏览文件管理器',
       'pick.system': '系统目录选择器',
-      'pick.manual': '或手动填写服务器路径',
-      'pick.placeholder': '/sdcard/Download/my-skill 或 /path/to/skill.md',
-      'pick.running': '上传中…',
+      'pick.running': '安装中…',
+      'pick.or': '或者',
       'browse.title': '选择服务器上的目录',
       'browse.up': '上一级',
       'browse.choose': '选择此文件夹',
       'browse.loading': '加载中…',
       'browse.empty': '这里没有子文件夹',
       'browse.hidden': '隐藏',
-      'import.title': '导入已在本机的技能',
-      'import.run': '导入',
-      'import.running': '导入中…',
+      'import.title': '粘贴内容安装',
+      'import.run': '安装',
+      'import.running': '安装中…',
       'notice.installed': '已安装 {name}',
       'notice.imported': '已导入 {name}',
       'notice.uploaded': '已从所选文件安装 {name}',
@@ -76,7 +75,7 @@ window.__ModuleLoader__.load({
       'panel.refresh': 'Refresh',
       'list.loading': 'Reading skills…',
       'list.empty': 'No local skills found yet',
-      'list.emptyHint': 'Use “Choose file / Choose folder” below, or paste a SKILL.md.',
+      'list.emptyHint': 'Tap “Pick SKILL.md” below and it installs itself.',
       'list.count': '{count} skills',
       'root.project-dsh': 'Project .dsh',
       'root.project-agents': 'Project .agents',
@@ -92,7 +91,7 @@ window.__ModuleLoader__.load({
       'row.nodesc': '(no description in frontmatter)',
       'install.toggle': 'Install skill',
       'install.title': 'Install skill',
-      'install.hint': 'Choosing a file opens the system file picker; pasted content must start with --- and carry name (kebab-case) and description.',
+      'install.hint': 'Picking a SKILL.md opens the file chooser and installs it right away.',
       'install.placeholder': '---\nname: my-skill\ndescription: When this skill should be used\n---\n\n# Body\nInstructions…',
       'install.mode': 'Layout',
       'install.modeDirectory': 'Directory name/SKILL.md',
@@ -100,22 +99,21 @@ window.__ModuleLoader__.load({
       'install.overwrite': 'Overwrite an existing skill',
       'install.run': 'Install',
       'install.running': 'Installing…',
-      'pick.files': 'Choose file…',
-      'pick.folder': 'Choose skill folder…',
-      'pick.server': 'Browse server folders…',
+      'pick.files': 'Pick SKILL.md',
+      'pick.folder': 'Pick a whole skill folder',
+      'pick.server': 'Browse files',
       'pick.system': 'System folder picker',
-      'pick.manual': 'Or type a server path',
-      'pick.placeholder': '/sdcard/Download/my-skill or /path/to/skill.md',
-      'pick.running': 'Uploading…',
+      'pick.running': 'Installing…',
+      'pick.or': 'or',
       'browse.title': 'Choose a folder on the server',
       'browse.up': 'Up',
       'browse.choose': 'Use this folder',
       'browse.loading': 'Loading…',
       'browse.empty': 'No subfolders here',
       'browse.hidden': 'hidden',
-      'import.title': 'Import a skill already on this machine',
-      'import.run': 'Import',
-      'import.running': 'Importing…',
+      'import.title': 'Paste the content instead',
+      'import.run': 'Install',
+      'import.running': 'Installing…',
       'notice.installed': 'Installed {name}',
       'notice.imported': 'Imported {name}',
       'notice.uploaded': 'Installed {name} from the chosen files',
@@ -217,16 +215,19 @@ window.__ModuleLoader__.load({
       }
     }
 
-    async function runImport(t) {
-      const source = state.importPath
-      if (source.trim() === '') {
-        patch({ error: t('error.prefix') + t('error.path') })
-        return
-      }
+    /** Install a folder or .md the user picked from the host filesystem. */
+    async function importFromPath(t, target, options) {
+      const silent = options !== undefined && options.silent === true
       patch({ busy: 'import', error: '', notice: '' })
       try {
-        const result = await request('/import', { path: source, overwrite: state.overwrite })
-        patch({ busy: '', importPath: '', notice: t('notice.imported').replace('{name}', result.name) })
+        const result = await request('/install-from-path', { path: target, overwrite: state.overwrite })
+        patch({
+          busy: '',
+          installOpen: false,
+          notice: silent
+            ? t('notice.uploaded').replace('{name}', result.name)
+            : t('notice.imported').replace('{name}', result.name),
+        })
         await load(t)
       } catch (error) {
         patch({ busy: '', error: message(t, error) })
@@ -257,7 +258,7 @@ window.__ModuleLoader__.load({
           files.push({ path: relative, dataBase64: await readBase64(file) })
         }
         const result = await request('/install-upload', { files, overwrite: state.overwrite })
-        patch({ busy: '', notice: t('notice.uploaded').replace('{name}', result.name) })
+        patch({ busy: '', installOpen: false, notice: t('notice.uploaded').replace('{name}', result.name) })
         await load(t)
       } catch (error) {
         patch({ busy: '', error: message(t, error) })
@@ -285,7 +286,7 @@ window.__ModuleLoader__.load({
       }
       try {
         const picked = await picker.pick()
-        if (picked !== null && picked !== undefined) patch({ importPath: picked })
+        if (picked !== null && picked !== undefined) await importFromPath(t, picked, { silent: true })
       } catch {
         // The Host composed the in-app browser instead of an OS chooser.
         await browseTo(t, picker, undefined)
@@ -403,19 +404,6 @@ window.__ModuleLoader__.load({
           button(t('pick.server'), () => void browseTo(t, picker, browse.path), false),
           picker !== null ? button(t('pick.system'), () => void useSystemPicker(t, picker), false) : null,
         ),
-        h(
-          'div',
-          { className: 'dsm-modes' },
-          h('span', { className: 'dsm-label' }, t('pick.manual')),
-          h('input', {
-            className: 'dsm-input',
-            value: current.importPath,
-            placeholder: t('pick.placeholder'),
-            spellCheck: false,
-            onChange: (event) => patch({ importPath: event.currentTarget.value }),
-          }),
-          button(current.busy === 'import' ? t('import.running') : t('import.run'), () => void runImport(t), current.busy === 'import'),
-        ),
         h('input', {
           ref: fileRef,
           type: 'file',
@@ -518,7 +506,12 @@ window.__ModuleLoader__.load({
               type: 'button',
               className: 'dsm-btn dsm-primary',
               disabled: listing === null,
-              onClick: () => patch({ importPath: listing === null ? '' : listing.path, browse: { ...browse, open: false } }),
+              onClick: () => {
+                if (listing === null) return
+                const target = listing.path
+                patch({ browse: { ...browse, open: false } })
+                void importFromPath(t, target)
+              },
             },
             t('browse.choose'),
           ),

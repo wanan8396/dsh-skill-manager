@@ -1,0 +1,7 @@
+# Patch layer for @local/skill-manager.
+# One host row serves the JSON API under /plugins/skill-manager/*; the browser
+# half is discovered through `dsh.client` and served at
+# /plugins/@local/skill-manager/client.js.
+- insert:
+    - id: skill-manager
+      name: '@local/skill-manager'

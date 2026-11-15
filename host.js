@@ -4,8 +4,7 @@
  * Owns one JSON API on the existing DSH web server:
  *
  *   GET  /plugins/skill-manager/list           – every discovered skill plus its root
- *   POST /plugins/skill-manager/install        – write a pasted SKILL.md into the user root
- *   POST /plugins/skill-manager/install-upload – write files chosen in the browser
+ *   POST /plugins/skill-manager/install-upload – one archive / SKILL.md picked in the browser
  *   POST /plugins/skill-manager/install-from-path – copy a folder/.md the user just picked
  *   POST /plugins/skill-manager/delete         – remove one skill from the user root
  *
@@ -16,6 +15,7 @@
  */
 
 import { existsSync } from 'node:fs'
+import { execFile } from 'node:child_process'
 import { cp, mkdir, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
@@ -281,34 +281,64 @@ function uniqueRoot() {
   return candidate
 }
 
-async function installSkill(input) {
-  const content = typeof input.content === 'string' ? input.content : ''
-  if (content.trim() === '') throw new HttpError(400, 'content 不能为空', 'E_INPUT')
-  const parsed = parseSkill(content)
-  const mode = input.mode === 'file' ? 'file' : 'directory'
-  const root = uniqueRoot()
-  await mkdir(root.path, { recursive: true })
-  const target = mode === 'file'
-    ? path.join(root.path, `${parsed.skillName}.md`)
-    : path.join(root.path, parsed.skillName, 'SKILL.md')
-  const occupied = existsSync(target)
-  if (occupied && input.overwrite !== true) {
-    throw new HttpError(409, `技能 ${parsed.skillName} 已存在（${target}）`, 'E_EXISTS')
+/** Run one argv without a shell; resolves instead of throwing. */
+function run(command, args, options = {}) {
+  return new Promise((resolve) => {
+    execFile(
+      command,
+      args,
+      { cwd: os.tmpdir(), timeout: options.timeout || 60_000, maxBuffer: 4 * 1024 * 1024 },
+      (error, stdout, stderr) => {
+        resolve({
+          ok: error === null,
+          code: error === null ? 0 : typeof error.code === 'number' ? error.code : null,
+          stdout: String(stdout || ''),
+          stderr: String(stderr || (error && error.message) || ''),
+        })
+      },
+    )
+  })
+}
+
+const ARCHIVE_EXTENSIONS = ['.zip', '.tar', '.tar.gz', '.tgz', '.tar.bz2', '.tbz2', '.tar.xz', '.txz']
+
+function archiveKind(name) {
+  const lower = String(name || '').toLowerCase()
+  if (lower.endsWith('.zip')) return 'zip'
+  if (/\.(tar\.gz|tgz)$/.test(lower)) return 'tar.gz'
+  if (/\.(tar\.bz2|tbz2)$/.test(lower)) return 'tar.bz2'
+  if (/\.(tar\.xz|txz)$/.test(lower)) return 'tar.xz'
+  if (lower.endsWith('.tar')) return 'tar'
+  return ''
+}
+
+/**
+ * Unpack one archive into `target` with the platform tools, then flatten a
+ * single top-level folder so `<name>/SKILL.md` and a bare `SKILL.md` both work.
+ * @param {string} file - archive path.
+ * @param {string} target - existing empty directory.
+ * @param {string} kind - from archiveKind().
+ */
+async function extractArchive(file, target, kind) {
+  await mkdir(target, { recursive: true })
+  const result = kind === 'zip'
+    ? await run('python3', ['-c', 'import sys,zipfile;zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])', file, target], { timeout: 120_000 })
+    : await run('tar', ['-xf', file, '-C', target], { timeout: 120_000 })
+  if (!result.ok) {
+    throw new HttpError(400, `压缩包解不开：${result.stderr || result.stdout || '未知错误'}`, 'E_ARCHIVE')
   }
-  if (mode === 'file') {
-    await writeFile(target, content.endsWith('\n') ? content : `${content}\n`, 'utf8')
-  } else {
-    await mkdir(path.dirname(target), { recursive: true })
-    await writeFile(target, content.endsWith('\n') ? content : `${content}\n`, 'utf8')
+  const entries = (await readdir(target, { withFileTypes: true })).filter((entry) => !entry.name.startsWith('.'))
+  if (entries.length === 1 && entries[0].isDirectory()) {
+    const inner = path.join(target, entries[0].name)
+    const moved = path.join(target, '__flatten')
+    await cp(inner, moved, { recursive: true })
+    await rm(inner, { recursive: true, force: true })
+    for (const entry of await readdir(moved)) {
+      await cp(path.join(moved, entry), path.join(target, entry), { recursive: true })
+    }
+    await rm(moved, { recursive: true, force: true })
   }
-  return {
-    ok: true,
-    name: parsed.skillName,
-    description: parsed.description,
-    mode,
-    path: target,
-    overwritten: occupied,
-  }
+  return target
 }
 
 /** One uploaded file's workspace-relative path, refusing traversal and absolutes. */
@@ -353,6 +383,44 @@ async function installUpload(input) {
       throw new HttpError(413, `文件过大：${relative}`, 'E_TOO_LARGE')
     }
     files.push({ relative, buffer: decoded.buffer, text: decoded.text })
+  }
+
+  const archive = files.length === 1 ? archiveKind(files[0].relative) : ''
+  if (archive !== '') {
+    const root = uniqueRoot()
+    await mkdir(root.path, { recursive: true })
+    const staging = path.join(root.path, `.unpack-${Date.now().toString(36)}`)
+    const unpacked = path.join(staging, 'content')
+    await mkdir(staging, { recursive: true })
+    try {
+      const archiveFile = path.join(staging, path.basename(files[0].relative))
+      await writeFile(archiveFile, files[0].buffer)
+      await extractArchive(archiveFile, unpacked, archive)
+      const skillFile = path.join(unpacked, 'SKILL.md')
+      if (!existsSync(skillFile)) throw new HttpError(400, '压缩包里没有 SKILL.md（需在根目录或唯一子文件夹里）', 'E_NOT_SKILL')
+      const parsed = parseSkill(await readFile(skillFile, 'utf8'))
+      const target = path.join(root.path, parsed.skillName)
+      const occupied = existsSync(target)
+      if (occupied) {
+        if (input.overwrite !== true) throw new HttpError(409, `技能 ${parsed.skillName} 已存在（${target}）`, 'E_EXISTS')
+        await rm(target, { recursive: true, force: true })
+      }
+      await mkdir(target, { recursive: true })
+      for (const entry of await readdir(unpacked)) {
+        await cp(path.join(unpacked, entry), path.join(target, entry), { recursive: true })
+      }
+      return {
+        ok: true,
+        name: parsed.skillName,
+        description: parsed.description,
+        mode: 'directory',
+        path: target,
+        overwritten: occupied,
+        archive,
+      }
+    } finally {
+      await rm(staging, { recursive: true, force: true })
+    }
   }
 
   const nested = files.filter((file) => file.relative.includes('/'))
@@ -451,8 +519,40 @@ async function installFromPath(input) {
   } else if (info.isFile() && source.endsWith('.md')) {
     skillFile = source
     mode = 'file'
+  } else if (info.isFile() && archiveKind(source) !== '') {
+    const root0 = uniqueRoot()
+    await mkdir(root0.path, { recursive: true })
+    const staging = path.join(root0.path, `.unpack-${Date.now().toString(36)}`)
+    await mkdir(staging, { recursive: true })
+    try {
+      await extractArchive(source, staging, archiveKind(source))
+      const innerSkill = path.join(staging, 'SKILL.md')
+      if (!existsSync(innerSkill)) throw new HttpError(400, '压缩包里没有 SKILL.md（需在根目录或唯一子文件夹里）', 'E_NOT_SKILL')
+      const parsed = parseSkill(await readFile(innerSkill, 'utf8'))
+      const dest = path.join(root0.path, parsed.skillName)
+      const taken = existsSync(dest)
+      if (taken) {
+        if (input.overwrite !== true) throw new HttpError(409, `技能 ${parsed.skillName} 已存在（${dest}）`, 'E_EXISTS')
+        await rm(dest, { recursive: true, force: true })
+      }
+      await mkdir(dest, { recursive: true })
+      for (const entry of await readdir(staging)) {
+        await cp(path.join(staging, entry), path.join(dest, entry), { recursive: true })
+      }
+      return {
+        ok: true,
+        name: parsed.skillName,
+        description: parsed.description,
+        mode: 'directory',
+        path: dest,
+        overwritten: taken,
+        archive: archiveKind(source),
+      }
+    } finally {
+      await rm(staging, { recursive: true, force: true })
+    }
   } else {
-    throw new HttpError(400, '只能选择技能文件夹或 .md 文件', 'E_INPUT')
+    throw new HttpError(400, '只能选择技能文件夹、.md 或压缩包（zip/tar.gz）', 'E_INPUT')
   }
 
   const parsed = parseSkill(await readFile(skillFile, 'utf8'))
@@ -525,7 +625,7 @@ function methodNotAllowed(res, method, allowed) {
   sendJson(res, 405, { ok: false, error: `不支持 ${method}，允许：${allowed}`, code: 'E_METHOD' })
 }
 
-const POST_ROUTES = new Set(['/install', '/install-upload', '/install-from-path', '/delete'])
+const POST_ROUTES = new Set(['/install-upload', '/delete'])
 
 async function dispatch(req, res) {
   const url = new URL(req.url || '/', 'http://127.0.0.1')
@@ -549,10 +649,6 @@ async function dispatch(req, res) {
   }
 
   const body = await readJson(req)
-  if (route === '/install') {
-    sendJson(res, 200, await installSkill(body))
-    return
-  }
   if (route === '/install-upload') {
     sendJson(res, 200, await installUpload(body))
     return

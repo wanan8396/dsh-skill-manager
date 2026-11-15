@@ -1,6 +1,6 @@
 {
   "meta": {
     "title": "Skill manager",
-    "description": "Adds a Skills row to the sidebar's global entry list. Installing is one step: Pick SKILL.md opens the system file chooser and installs immediately; Pick a whole skill folder uploads a bundle; Browse files installs whatever folder you tap in the host browser. Skills are grouped by root, user skills delete behind a confirmation, project skills are read-only."
+    "description": "Adds a Skills row to the sidebar's global entry list. One install button: pick a skill archive (zip / tar.gz / tgz / tar.bz2 / tar.xz) or a bare SKILL.md, and it unpacks into ~/.dsh/skills immediately, replacing a same-name skill — no names, no checkboxes. SKILL.md may sit at the archive root or inside its single top folder. Skills are grouped by root, user skills delete behind a confirmation."
   }
 }

@@ -11,17 +11,13 @@ can install, import and delete local `SKILL.md` skills without leaving the app.
 
 - **Lists every local skill**, grouped by root:
   `<project>/.dsh/skills`, `<project>/.agents/skills`, `~/.dsh/skills`, `~/.agents/skills`.
-- **Install from the system file picker** — `选择文件…` opens the browser's file chooser
-  (`.md`, multi-select) and uploads the exact bytes.
-- **Install a whole skill folder** — `选择技能文件夹…` uses `webkitdirectory`, so `SKILL.md`
-  plus `references/`, `scripts/` and `assets/` land together.
-- **Browse the Host filesystem in-app** — `浏览服务器目录…` drives
-  `uiWorkspace.listDirectory` with breadcrumbs, so `/sdcard/Download` is two taps away on
-  Android and any absolute path works on desktop.
-- **System folder picker** — `系统目录选择器` calls `uiWorkspace.pickDirectory()` and falls back
-  to the in-app browser when the Host composed the browse backend instead of an OS chooser.
-- **Paste to install** — a `SKILL.md` body with `---` frontmatter, written as a directory
-  (`name/SKILL.md`) or a flat file (`name.md`).
+- **One install button** — pick a skill archive (`.zip`, `.tar.gz`, `.tgz`, `.tar.bz2`, `.tar.xz`)
+  or a bare `SKILL.md`; it unpacks into `~/.dsh/skills` immediately and replaces a same-name skill.
+- **Archives keep their resources** — `references/`, `scripts/` and `assets/` land together, whether
+  `SKILL.md` sits at the archive root or in its single top folder.
+- **No manual paths, no mode switches, no overwrite checkbox** — the picker is the whole flow.
+
+
 - **Delete with confirmation** — `删除 → 确认删除`; project roots are listed read-only.
 - Bilingual UI copy (zh / en) through the DSH client locale service.
 
@@ -62,8 +58,7 @@ The bundle inserts one Host row that serves JSON on the existing DSH web server:
 | Method | Path | Purpose |
 | --- | --- | --- |
 | `GET` | `/plugins/skill-manager/list` | discovered skills, roots and writability |
-| `POST` | `/plugins/skill-manager/install` | write a pasted `SKILL.md` |
-| `POST` | `/plugins/skill-manager/install-upload` | write files chosen in the browser (base64) |
+| `POST` | `/plugins/skill-manager/install-upload` | install the picked archive / `SKILL.md` |
 | `POST` | `/plugins/skill-manager/import` | copy a local skill directory/`.md` |
 | `POST` | `/plugins/skill-manager/delete` | remove one user skill |
 

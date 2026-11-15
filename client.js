@@ -17,7 +17,7 @@ window.__ModuleLoader__.load({
       'panel.refresh': '刷新',
       'list.loading': '正在读取技能…',
       'list.empty': '还没有发现本机技能',
-      'list.emptyHint': '点下面的“选 SKILL.md 安装”，选完就装好。',
+      'list.emptyHint': '点下面的按钮选一个技能压缩包，选完就装好。',
       'list.count': '共 {count} 个技能',
       'root.project-dsh': '项目 .dsh',
       'root.project-agents': '项目 .agents',
@@ -31,31 +31,9 @@ window.__ModuleLoader__.load({
       'row.directory': '目录',
       'row.file': '单文件',
       'row.nodesc': '（frontmatter 没有 description）',
-      'install.toggle': '安装技能',
-      'install.title': '安装技能',
-      'install.hint': '选 SKILL.md 会直接打开文件选择器，选完自动安装。',
-      'install.placeholder': '---\nname: my-skill\ndescription: 一句话说明什么时候用这个技能\n---\n\n# 正文\n按步骤写的指令…',
-      'install.mode': '写入形式',
-      'install.modeDirectory': '目录 name/SKILL.md',
-      'install.modeFile': '单文件 name.md',
-      'install.overwrite': '覆盖同名技能',
-      'install.run': '安装',
-      'install.running': '安装中…',
-      'pick.files': '选 SKILL.md 安装',
-      'pick.folder': '选整个技能文件夹',
-      'pick.server': '浏览文件管理器',
-      'pick.system': '系统目录选择器',
+      'install.hint': '压缩包（zip / tar.gz / tgz）或 SKILL.md 都行，选完自动安装，重名直接覆盖。',
+      'pick.one': '选择技能压缩包 / SKILL.md',
       'pick.running': '安装中…',
-      'pick.or': '或者',
-      'browse.title': '选择服务器上的目录',
-      'browse.up': '上一级',
-      'browse.choose': '选择此文件夹',
-      'browse.loading': '加载中…',
-      'browse.empty': '这里没有子文件夹',
-      'browse.hidden': '隐藏',
-      'import.title': '粘贴内容安装',
-      'import.run': '安装',
-      'import.running': '安装中…',
       'notice.installed': '已安装 {name}',
       'notice.imported': '已导入 {name}',
       'notice.uploaded': '已从所选文件安装 {name}',
@@ -63,9 +41,6 @@ window.__ModuleLoader__.load({
       'notice.watch': '技能目录由文件系统提供者监视；新技能在下一个会话或下一步工具调用进入模型目录。',
       'notice.problems': '{count} 个条目被跳过（frontmatter 无效）',
       'error.prefix': '操作失败：',
-      'error.empty': '请先粘贴 SKILL.md 内容',
-      'error.path': '请先选择一个目录或填写路径',
-      'error.noPicker': '当前环境没有目录浏览服务，请手动填写路径',
       'write.to': '写入目录：',
     }
 
@@ -75,7 +50,7 @@ window.__ModuleLoader__.load({
       'panel.refresh': 'Refresh',
       'list.loading': 'Reading skills…',
       'list.empty': 'No local skills found yet',
-      'list.emptyHint': 'Tap “Pick SKILL.md” below and it installs itself.',
+      'list.emptyHint': 'Tap the button below, pick a skill archive, done.',
       'list.count': '{count} skills',
       'root.project-dsh': 'Project .dsh',
       'root.project-agents': 'Project .agents',
@@ -91,29 +66,15 @@ window.__ModuleLoader__.load({
       'row.nodesc': '(no description in frontmatter)',
       'install.toggle': 'Install skill',
       'install.title': 'Install skill',
-      'install.hint': 'Picking a SKILL.md opens the file chooser and installs it right away.',
+      'install.hint': 'Pick one archive (zip / tar.gz / tgz) or a SKILL.md and it installs itself; the archive must contain SKILL.md.',
       'install.placeholder': '---\nname: my-skill\ndescription: When this skill should be used\n---\n\n# Body\nInstructions…',
       'install.mode': 'Layout',
       'install.modeDirectory': 'Directory name/SKILL.md',
       'install.modeFile': 'Single file name.md',
-      'install.overwrite': 'Overwrite an existing skill',
       'install.run': 'Install',
       'install.running': 'Installing…',
-      'pick.files': 'Pick SKILL.md',
-      'pick.folder': 'Pick a whole skill folder',
-      'pick.server': 'Browse files',
-      'pick.system': 'System folder picker',
+      'pick.one': 'Pick a skill archive / SKILL.md',
       'pick.running': 'Installing…',
-      'pick.or': 'or',
-      'browse.title': 'Choose a folder on the server',
-      'browse.up': 'Up',
-      'browse.choose': 'Use this folder',
-      'browse.loading': 'Loading…',
-      'browse.empty': 'No subfolders here',
-      'browse.hidden': 'hidden',
-      'import.title': 'Paste the content instead',
-      'import.run': 'Install',
-      'import.running': 'Installing…',
       'notice.installed': 'Installed {name}',
       'notice.imported': 'Imported {name}',
       'notice.uploaded': 'Installed {name} from the chosen files',
@@ -121,9 +82,6 @@ window.__ModuleLoader__.load({
       'notice.watch': 'The skill roots are watched; a new skill enters the catalog on the next session or the next tool step.',
       'notice.problems': '{count} entries skipped (invalid frontmatter)',
       'error.prefix': 'Failed: ',
-      'error.empty': 'Paste a SKILL.md first',
-      'error.path': 'Choose a folder or type a path first',
-      'error.noPicker': 'No directory service in this environment; type the path instead',
       'write.to': 'Destination: ',
     }
 
@@ -135,13 +93,8 @@ window.__ModuleLoader__.load({
       error: '',
       notice: '',
       installOpen: false,
-      draft: '',
-      mode: 'directory',
-      overwrite: false,
-      importPath: '',
       busy: '',
       confirmPath: '',
-      browse: { open: false, path: undefined, listing: null, loading: false, error: '' },
     }
 
     const listeners = new Set()
@@ -199,41 +152,6 @@ window.__ModuleLoader__.load({
       }
     }
 
-    async function runInstall(t) {
-      const draft = state.draft
-      if (draft.trim() === '') {
-        patch({ error: t('error.prefix') + t('error.empty') })
-        return
-      }
-      patch({ busy: 'install', error: '', notice: '' })
-      try {
-        const result = await request('/install', { content: draft, mode: state.mode, overwrite: state.overwrite })
-        patch({ busy: '', draft: '', notice: t('notice.installed').replace('{name}', result.name) })
-        await load(t)
-      } catch (error) {
-        patch({ busy: '', error: message(t, error) })
-      }
-    }
-
-    /** Install a folder or .md the user picked from the host filesystem. */
-    async function importFromPath(t, target, options) {
-      const silent = options !== undefined && options.silent === true
-      patch({ busy: 'import', error: '', notice: '' })
-      try {
-        const result = await request('/install-from-path', { path: target, overwrite: state.overwrite })
-        patch({
-          busy: '',
-          installOpen: false,
-          notice: silent
-            ? t('notice.uploaded').replace('{name}', result.name)
-            : t('notice.imported').replace('{name}', result.name),
-        })
-        await load(t)
-      } catch (error) {
-        patch({ busy: '', error: message(t, error) })
-      }
-    }
-
     function readBase64(file) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader()
@@ -257,39 +175,11 @@ window.__ModuleLoader__.load({
           const relative = file.webkitRelativePath && file.webkitRelativePath !== '' ? file.webkitRelativePath : file.name
           files.push({ path: relative, dataBase64: await readBase64(file) })
         }
-        const result = await request('/install-upload', { files, overwrite: state.overwrite })
+        const result = await request('/install-upload', { files, overwrite: true })
         patch({ busy: '', installOpen: false, notice: t('notice.uploaded').replace('{name}', result.name) })
         await load(t)
       } catch (error) {
         patch({ busy: '', error: message(t, error) })
-      }
-    }
-
-    async function browseTo(t, picker, target) {
-      if (picker === null) {
-        patch({ error: t('error.prefix') + t('error.noPicker') })
-        return
-      }
-      patch({ browse: { ...state.browse, open: true, loading: true, error: '' } })
-      try {
-        const listing = await picker.list(target)
-        patch({ browse: { open: true, loading: false, error: '', path: listing.path, listing } })
-      } catch (error) {
-        patch({ browse: { ...state.browse, open: true, loading: false, error: message(t, error) } })
-      }
-    }
-
-    async function useSystemPicker(t, picker) {
-      if (picker === null) {
-        await browseTo(t, picker, undefined)
-        return
-      }
-      try {
-        const picked = await picker.pick()
-        if (picked !== null && picked !== undefined) await importFromPath(t, picked, { silent: true })
-      } catch {
-        // The Host composed the in-app browser instead of an OS chooser.
-        await browseTo(t, picker, undefined)
       }
     }
 
@@ -383,32 +273,28 @@ window.__ModuleLoader__.load({
 
     function Picker(props) {
       const t = props.t
-      const picker = props.picker
       const current = useStore()
       const fileRef = React.useRef(null)
-      const folderRef = React.useRef(null)
       const busy = current.busy === 'upload'
-      const browse = current.browse
-
-      const button = (label, onClick, disabled) =>
-        h('button', { type: 'button', className: 'dsm-btn', onClick, disabled: disabled === true }, label)
 
       return h(
         'div',
         { className: 'dsm-upload' },
         h(
-          'div',
-          { className: 'dsm-modes' },
-          button(busy ? t('pick.running') : t('pick.files'), () => fileRef.current && fileRef.current.click(), busy),
-          button(t('pick.folder'), () => folderRef.current && folderRef.current.click(), busy),
-          button(t('pick.server'), () => void browseTo(t, picker, browse.path), false),
-          picker !== null ? button(t('pick.system'), () => void useSystemPicker(t, picker), false) : null,
+          'button',
+          {
+            type: 'button',
+            className: 'dsm-btn dsm-primary dsm-wide',
+            disabled: busy,
+            onClick: () => fileRef.current && fileRef.current.click(),
+          },
+          busy ? t('pick.running') : t('pick.one'),
         ),
         h('input', {
           ref: fileRef,
           type: 'file',
-          accept: '.md,.markdown,text/markdown,text/plain',
-          multiple: true,
+          accept: '.zip,.tar,.gz,.tgz,.bz2,.xz,.md,.markdown',
+          multiple: false,
           className: 'dsm-hidden',
           onChange: (event) => {
             const files = event.currentTarget.files
@@ -416,179 +302,16 @@ window.__ModuleLoader__.load({
             void uploadFiles(t, files)
           },
         }),
-        h('input', {
-          ref: (element) => {
-            folderRef.current = element
-            if (element !== null) {
-              element.setAttribute('webkitdirectory', '')
-              element.setAttribute('directory', '')
-            }
-          },
-          type: 'file',
-          multiple: true,
-          className: 'dsm-hidden',
-          onChange: (event) => {
-            const files = event.currentTarget.files
-            event.currentTarget.value = ''
-            void uploadFiles(t, files)
-          },
-        }),
-        browse.open ? h(Browser, { t, picker, browse }) : null,
-      )
-    }
-
-    function Browser(props) {
-      const t = props.t
-      const picker = props.picker
-      const browse = props.browse
-      const listing = browse.listing
-      const crumbs = listing === null ? [] : listing.crumbs
-      const entries = listing === null ? [] : listing.entries
-      return h(
-        'div',
-        { className: 'dsm-browser' },
-        h('div', { className: 'dsm-browser-head' }, h('span', { className: 'dsm-card-title' }, t('browse.title'))),
-        h(
-          'div',
-          { className: 'dsm-crumbs' },
-          h(
-            'button',
-            {
-              type: 'button',
-              className: 'dsm-btn dsm-tiny',
-              onClick: () => void browseTo(t, picker, crumbs.length > 1 ? crumbs[crumbs.length - 2].path : undefined),
-              disabled: crumbs.length <= 1,
-            },
-            t('browse.up'),
-          ),
-          crumbs.map((crumb, index) =>
-            h(
-              'button',
-              {
-                key: crumb.path,
-                type: 'button',
-                className: 'dsm-btn dsm-tiny' + (index === crumbs.length - 1 ? ' dsm-on' : ''),
-                onClick: () => void browseTo(t, picker, crumb.path),
-              },
-              crumb.name === '' ? '/' : crumb.name,
-            ),
-          ),
-        ),
-        browse.loading ? h('p', { className: 'dsm-hint' }, t('browse.loading')) : null,
-        browse.error !== '' ? h('div', { className: 'dsm-error' }, browse.error) : null,
-        listing === null || browse.loading
-          ? null
-          : entries.length === 0
-            ? h('p', { className: 'dsm-hint' }, t('browse.empty'))
-            : h(
-                'div',
-                { className: 'dsm-folders' },
-                entries.map((entry) =>
-                  h(
-                    'button',
-                    {
-                      key: entry.path,
-                      type: 'button',
-                      className: 'dsm-folder',
-                      onClick: () => void browseTo(t, picker, entry.path),
-                    },
-                    h('span', { className: 'dsm-folder-name' }, entry.name),
-                    entry.hidden ? h('span', { className: 'dsm-readonly' }, t('browse.hidden')) : null,
-                  ),
-                ),
-              ),
-        h(
-          'div',
-          { className: 'dsm-row-actions dsm-row-inline' },
-          h(
-            'button',
-            {
-              type: 'button',
-              className: 'dsm-btn dsm-primary',
-              disabled: listing === null,
-              onClick: () => {
-                if (listing === null) return
-                const target = listing.path
-                patch({ browse: { ...browse, open: false } })
-                void importFromPath(t, target)
-              },
-            },
-            t('browse.choose'),
-          ),
-          h('button', { type: 'button', className: 'dsm-btn', onClick: () => patch({ browse: { ...browse, open: false } }) }, t('row.cancel')),
-        ),
       )
     }
 
     function Installer(props) {
       const t = props.t
-      const picker = props.picker
-      const current = useStore()
-      if (!current.installOpen) {
-        return h(
-          'button',
-          { type: 'button', className: 'dsm-btn dsm-primary', onClick: () => patch({ installOpen: true }) },
-          '＋ ' + t('install.toggle'),
-        )
-      }
-      const busy = current.busy === 'install'
       return h(
         'section',
-        { className: 'dsm-card' },
-        h('h2', { className: 'dsm-card-title' }, t('install.title')),
+        { className: 'dsm-card dsm-install' },
+        h(Picker, { t }),
         h('p', { className: 'dsm-hint' }, t('install.hint')),
-        h(Picker, { t, picker }),
-        h('div', { className: 'dsm-sep' }),
-        h('textarea', {
-          className: 'dsm-textarea',
-          value: current.draft,
-          placeholder: t('install.placeholder'),
-          spellCheck: false,
-          onChange: (event) => patch({ draft: event.currentTarget.value }),
-        }),
-        h(
-          'div',
-          { className: 'dsm-modes' },
-          h('span', { className: 'dsm-label' }, t('install.mode')),
-          h(
-            'button',
-            {
-              type: 'button',
-              className: 'dsm-btn' + (current.mode === 'directory' ? ' dsm-on' : ''),
-              onClick: () => patch({ mode: 'directory' }),
-            },
-            t('install.modeDirectory'),
-          ),
-          h(
-            'button',
-            {
-              type: 'button',
-              className: 'dsm-btn' + (current.mode === 'file' ? ' dsm-on' : ''),
-              onClick: () => patch({ mode: 'file' }),
-            },
-            t('install.modeFile'),
-          ),
-        ),
-        h(
-          'label',
-          { className: 'dsm-check' },
-          h('input', {
-            type: 'checkbox',
-            checked: current.overwrite,
-            onChange: (event) => patch({ overwrite: event.currentTarget.checked }),
-          }),
-          h('span', null, t('install.overwrite')),
-        ),
-        h(
-          'div',
-          { className: 'dsm-row-actions dsm-row-inline' },
-          h(
-            'button',
-            { type: 'button', className: 'dsm-btn dsm-primary', disabled: busy, onClick: () => void runInstall(t) },
-            busy ? t('install.running') : t('install.run'),
-          ),
-          h('button', { type: 'button', className: 'dsm-btn', onClick: () => patch({ installOpen: false }) }, t('row.cancel')),
-        ),
       )
     }
 
@@ -596,7 +319,6 @@ window.__ModuleLoader__.load({
 
     function SkillManagerPage(props) {
       const t = props.t
-      const picker = props.picker
       const current = useStore()
 
       React.useEffect(() => {
@@ -647,7 +369,7 @@ window.__ModuleLoader__.load({
         )
       }
 
-      body.push(h(Installer, { key: 'installer', t, picker }))
+      body.push(h(Installer, { key: 'installer', t }))
       body.push(h('p', { className: 'dsm-hint', key: 'watch' }, t('notice.watch')))
       if (data !== null) {
         body.push(h('div', { className: 'dsm-path', key: 'dest' }, t('write.to') + data.writableRoot))
@@ -713,29 +435,18 @@ window.__ModuleLoader__.load({
       '.dsm-btn{appearance:none;border:1px solid var(--dsw-alias-border-l1,rgba(31,35,40,.16));background:transparent;color:inherit;border-radius:8px;padding:6px 11px;font:inherit;font-size:.88em;line-height:1.4;cursor:pointer;white-space:nowrap;text-align:center}',
       '.dsm-btn:hover:not(:disabled){background:var(--dsw-alias-interactive-bg-hover,rgba(31,35,40,.06))}',
       '.dsm-btn:disabled{opacity:.5;cursor:not-allowed}',
-      '.dsm-btn:focus-visible,.dsm-input:focus-visible,.dsm-textarea:focus-visible{outline:2px solid var(--dsw-alias-state-business-primary,#247bbf);outline-offset:1px}',
+      '.dsm-btn:focus-visible{outline:2px solid var(--dsw-alias-state-business-primary,#247bbf);outline-offset:1px}',
       '.dsm-btn.dsm-tiny{padding:3px 8px;font-size:.8em}',
       '.dsm-btn.dsm-on{border-color:var(--dsw-alias-state-business-primary,#247bbf);color:var(--dsw-alias-state-business-primary,#247bbf)}',
       '.dsm-btn.dsm-primary{background:var(--dsw-alias-state-business-primary,#247bbf);border-color:transparent;color:#fff;font-weight:600}',
       '.dsm-btn.dsm-danger{border-color:var(--dsw-alias-state-error-primary,#cf222e);color:var(--dsw-alias-state-error-primary,#cf222e)}',
       '.dsm-card{display:flex;flex-direction:column;gap:10px;border:1px solid var(--dsw-alias-border-l1,rgba(31,35,40,.12));border-radius:12px;padding:14px 16px;background:var(--dsw-alias-bg-layer-1,transparent);min-width:0}',
       '.dsm-card-title{margin:0;font-size:.95em;font-weight:600}',
-      '.dsm-label{font-size:.82em;color:var(--dsw-alias-label-tertiary,#6e7781)}',
-      '.dsm-modes{display:flex;gap:7px;align-items:center;flex-wrap:wrap}',
-      '.dsm-check{display:flex;align-items:center;gap:8px;font-size:.86em;color:var(--dsw-alias-label-secondary,#57606a)}',
-      '.dsm-input,.dsm-textarea{width:100%;box-sizing:border-box;border:1px solid var(--dsw-alias-border-l1,rgba(31,35,40,.16));background:var(--dsw-alias-bg-layer-2,rgba(31,35,40,.03));color:inherit;border-radius:8px;padding:8px 10px;font:inherit;font-size:.9em}',
-      '.dsm-modes .dsm-input{flex:1 1 200px;width:auto;min-width:0}',
-      '.dsm-textarea{min-height:200px;resize:vertical;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.84em;line-height:1.6}',
-      '.dsm-sep{height:1px;background:var(--dsw-alias-border-l1,rgba(31,35,40,.1));margin:4px 0}',
       '.dsm-upload{display:flex;flex-direction:column;gap:8px}',
+      '.dsm-install{gap:8px}',
       '.dsm-hidden{display:none}',
-      '.dsm-browser{display:flex;flex-direction:column;gap:8px;border:1px solid var(--dsw-alias-border-l1,rgba(31,35,40,.12));border-radius:10px;padding:10px 12px;background:var(--dsw-alias-bg-layer-2,rgba(31,35,40,.02))}',
-      '.dsm-browser-head{display:flex;align-items:center;gap:8px}',
-      '.dsm-crumbs{display:flex;gap:4px;align-items:center;flex-wrap:wrap}',
       '.dsm-folders{display:flex;flex-direction:column;gap:2px;max-height:240px;overflow:auto}',
-      '.dsm-folder{appearance:none;border:0;background:transparent;color:inherit;font:inherit;font-size:.9em;text-align:left;display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:8px;cursor:pointer}',
       '.dsm-folder:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(31,35,40,.07))}',
-      '.dsm-folder-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
       '.dsm-error{border:1px solid var(--dsw-alias-state-error-primary,#cf222e);color:var(--dsw-alias-state-error-primary,#cf222e);border-radius:10px;padding:9px 12px;font-size:.86em;line-height:1.55;white-space:pre-wrap}',
       '.dsm-notice{border:1px solid var(--dsw-alias-state-success-primary,#2da44e);color:var(--dsw-alias-state-success-primary,#2da44e);border-radius:10px;padding:9px 12px;font-size:.86em;line-height:1.55}',
       '.dsm-hint{margin:0;font-size:.82em;line-height:1.65;color:var(--dsw-alias-label-tertiary,#6e7781)}',
@@ -757,24 +468,9 @@ window.__ModuleLoader__.load({
 
     // ---------------------------------------------------------------- apply
 
-    function directoryService(ctx) {
-      try {
-        const service = ctx.uiWorkspace
-        if (service === undefined || service === null) return null
-        if (typeof service.listDirectory !== 'function') return null
-        return {
-          list: (target) => service.listDirectory(target),
-          pick: () => service.pickDirectory(),
-        }
-      } catch {
-        return null
-      }
-    }
-
     function apply(ctx) {
       ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'skill-manager: locale')
       const t = ctx.locale.bind(NS)
-      const picker = directoryService(ctx)
 
       ctx.effect(() => injectStyle(), 'skill-manager: styles')
 
@@ -805,7 +501,7 @@ window.__ModuleLoader__.load({
                 name: 'main',
                 key: PANEL_ID,
                 locale: NS,
-                inject: () => ({ t, picker }),
+                inject: () => ({ t }),
               },
               SkillManagerPage,
             ),
